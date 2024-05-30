@@ -16,6 +16,14 @@ def check_all_annotation_unique(json_data):
         annotation_ids.add(annotation_id)
     assert len(annotation_ids) == len(json_data["annotations"]), f"Annotations are not unique"
 
+def check_all_category_unique(json_data):
+    category_ids = set()
+    for category in json_data["categories"]:
+        category_id = category["id"]
+        assert category_id not in category_ids, f"Category ID {category_id} is not unique"
+        category_ids.add(category_id)
+    assert len(category_ids) == len(json_data["categories"]), f"Categories are not unique"
+
 def check_annotation_have_corresponding_image(json_data):
     image_ids = set()
     for image in json_data["images"]:
@@ -61,6 +69,9 @@ def main(json_file, seen_file, unseen_file):
 
     print("Checking all annotations are unique")
     check_all_annotation_unique(json_data)
+
+    print("Checking all categories are unique")
+    check_all_category_unique(json_data)
 
     print("Checking all annotations have corresponding image")
     check_annotation_have_corresponding_image(json_data)
