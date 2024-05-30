@@ -58,7 +58,7 @@ def filter_json_data(json_data, CATEGORY_ID_TO_CLASS_ID):
     return filtered_json_datas
 
 
-def main(json_file, seen_file, unseen_file, conversion_file, train_ratio):
+def main(json_file, seen_file, unseen_file, train_ratio):
     
     print(f"Reading seen classes from {seen_file}")
     ID_TO_SEEN_CLASS = read_classes_file(seen_file)
@@ -72,15 +72,8 @@ def main(json_file, seen_file, unseen_file, conversion_file, train_ratio):
     json_data = read_json(json_file)
     print(f"Total images: {len(json_data['images'])}, total annotations: {len(json_data['annotations'])}, total category: {len(json_data['categories'])}")
 
-    CATEGORY_ID_TO_CLASS_ID = read_conversion_file(conversion_file)
-
-    print("Filter json data")
-    json_data = filter_json_data(json_data, CATEGORY_ID_TO_CLASS_ID)
-    print(f"Total images: {len(json_data['images'])}, total annotations: {len(json_data['annotations'])}")
-
-    
-    print("Convert category id to class id")
-    json_data = convert_category_to_class_id(json_data, CATEGORY_ID_TO_CLASS_ID)
+    origin_image_count = len(json_data["images"])
+    origin_annotation_count = len(json_data["annotations"])
 
     print("Extract seen classes from json")
     seen_json_data = extract_json_data(json_data, ID_TO_SEEN_CLASS)
@@ -99,11 +92,13 @@ def main(json_file, seen_file, unseen_file, conversion_file, train_ratio):
     val_json_data = join_json_data(val_json_data, unseen_json_data)
     print(f"Val images: {len(val_json_data['images'])}, val annotations: {len(val_json_data['annotations'])}, val categories: {len(val_json_data['categories'])}")
 
+
     print("Remove overlapping data")
     train_json_data, val_json_data = remove_overlapping_data(train_json_data, val_json_data)
 
     print(f"Train images: {len(train_json_data['images'])}, train annotations: {len(train_json_data['annotations'])}, train categories: {len(train_json_data['categories'])}")
     print(f"Val images: {len(val_json_data['images'])}, val annotations: {len(val_json_data['annotations'])}, val categories: {len(val_json_data['categories'])}")
+
 
     print("Remove duplicated data")
     train_json_data = remove_duplicate_json_data(train_json_data)
@@ -112,21 +107,28 @@ def main(json_file, seen_file, unseen_file, conversion_file, train_ratio):
     print(f"Train images: {len(train_json_data['images'])}, train annotations: {len(train_json_data['annotations'])}, train categories: {len(train_json_data['categories'])}")
     print(f"Val images: {len(val_json_data['images'])}, val annotations: {len(val_json_data['annotations'])}, val categories: {len(val_json_data['categories'])}")
 
+    train_images_count = len(train_json_data["images"])
+    train_annotations_count = len(train_json_data["annotations"])
+    val_images_count = len(val_json_data["images"])
+    val_annotations_count = len(val_json_data["annotations"])
+
+    assert origin_image_count >= train_images_count + val_images_count, f"Train images count {train_images_count} + Val images count {val_images_count} > Origin image count {origin_image_count}"
+    assert origin_annotation_count >= train_annotations_count + val_annotations_count, f"Train annotation count {train_annotations_count} + Val annotation count {val_annotations_count} > Origin annotation count {origin_annotation_count}"
+
     output_folder = "json/"
     os.makedirs(output_folder, exist_ok=True)
 
-    train_json_file = os.path.join(output_folder, "class_level_train.json")
+    train_json_file = os.path.join(output_folder, "inter_class_train.json")
     print(f"Save train json data to {train_json_file}")
     write_json(train_json_file, train_json_data)
 
-    val_json_file = os.path.join(output_folder, "class_level_val.json")
+    val_json_file = os.path.join(output_folder, "inter_class_val.json")
     print(f"Save val json data to {val_json_file}")
     write_json(val_json_file, val_json_data)
 
 if __name__ == "__main__":
     json_file = "./final.json"
-    seen_file = "category/class-level_seen.txt"
-    unseen_file = "category/class-level_unseen.txt"
-    conversion_file = "category/category_id_to_class_id.txt"
+    seen_file = "category/inter-class_seen.txt"
+    unseen_file = "category/inter-class_unseen.txt"
     train_ratio = 0.8
-    main(json_file, seen_file, unseen_file, conversion_file, train_ratio)
+    main(json_file, seen_file, unseen_file, train_ratio)
