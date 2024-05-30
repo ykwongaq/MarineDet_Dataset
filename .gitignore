@@ -3,5 +3,6 @@
 category/
 category_json/
 json/
+statistic/
 
-final*
+*.json
