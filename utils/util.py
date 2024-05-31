@@ -307,3 +307,8 @@ def statistic_data(json_data, seen_classes:dict = None, unseen_classes:dict = No
             print(f"ID: {id} Class: {name}")
             no_instance_unseen_class_count += 1
     print(f"Total: {no_instance_unseen_class_count}")
+
+def write_txt(file:str, lines:list):
+    with open(file, "w", encoding="utf-8") as f:
+        for line in lines:
+            f.write(line + "\n")
