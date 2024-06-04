@@ -9,6 +9,9 @@ GENERATED_NEGATIVE = 1
 REFINED_POSITIVE = 2
 NOT_LABELED = -1
 
+def is_small(annotation):
+    return annotation["area"] < 32*32
+
 def count_images(json_data):
     return len(json_data["images"])
 
@@ -36,7 +39,7 @@ def measure_caption_length(json_data):
     for annotation in json_data["annotations"]:
         caption = annotation["caption"]
 
-        if annotation["area"] < 32*32:
+        if is_small(annotation):
             continue
 
         caption_lengths.append(len(caption.split()))
@@ -48,7 +51,7 @@ def mesure_vocabulary_size_dataset(json_data):
     captions = []
     for annotation in json_data["annotations"]:
         caption = annotation["caption"]
-        if annotation["area"] < 32*32:
+        if is_small(annotation):
             continue
         captions.append(caption)
     
@@ -64,7 +67,7 @@ def mesure_vocabulary_size_per_image(json_data):
 
     captions = []
     for annotation in json_data["annotations"]:
-        if annotation["area"] >= 32*32:
+        if not is_small(annotation):
             caption = annotation["caption"]
             captions.append(caption)
 
@@ -80,7 +83,7 @@ def mesure_vocabulary_size_per_image(json_data):
 def measure_top_common_words(json_data, top=30):
     captions = []
     for annotation in json_data["annotations"]:
-        if annotation["area"] >= 32*32:
+        if not is_small(annotation):
             caption = annotation["caption"]
             captions.append(caption)
 
@@ -141,8 +144,7 @@ def count_small_bbox(json_data):
     small_bbox_count = 0
     for annotation in json_data["annotations"]:
         if "bbox" in annotation:
-            area = annotation["area"]
-            if area < 32*32:
+            if is_small(annotation):
                 small_bbox_count += 1
     return small_bbox_count
 
@@ -193,7 +195,7 @@ def count_small_bbox_per_image(json_data):
             continue
 
         area = annotation["area"]
-        if area < 32*32:
+        if is_small(annotation):
             ID_TO_COUNT[image_id] += 1
 
     return sum(ID_TO_COUNT.values()) / len(ID_TO_COUNT)
@@ -281,7 +283,7 @@ def count_negative_tags(json_data):
         if negatives_tags == "":
             continue
 
-        if annotation["area"] < 32*32:
+        if is_small(annotation):
             continue
 
         negatives_tags = negatives_tags.split(",")
@@ -300,7 +302,7 @@ def count_negative_tags_per_image(json_data):
         negatives_tags = annotation["negative_tags"]
 
         
-        if annotation["area"] < 32*32:
+        if is_small(annotation):
             continue
 
         if negatives_tags == "":
@@ -322,3 +324,27 @@ def count_annotations_based_on_mapping(json_data, classes_mapping):
         if category_id in classes_mapping:
             count += 1
     return count
+
+def count_refined_positive_captions(json_data):
+    count = 0
+    for annotation in json_data["annotations"]:
+        if is_small(annotation):
+            continue
+
+        if annotation["label"] == REFINED_POSITIVE:
+            count += 1
+    return count
+
+def measure_refined_positive_caption_avg_length(json_data):
+    caption_lengths = []
+    
+    for annotation in json_data["annotations"]:
+        if is_small(annotation):
+            continue
+
+        if annotation["label"] == REFINED_POSITIVE:
+            caption = annotation["caption"]
+            caption_lengths.append(len(caption.split()))
+
+    return sum(caption_lengths) / len(caption_lengths)
+

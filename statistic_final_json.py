@@ -35,17 +35,27 @@ def main(json_file:str, output_folder:str):
     avg_caption_length = measure_caption_length(json_data)
     log(f"Average caption length: {avg_caption_length}")
 
+    refined_positive_caption_count = count_refined_positive_captions(json_data)
+    log(f"Refined positive caption count: {refined_positive_caption_count}")
+
+    refined_positive_caption_avg_length = measure_refined_positive_caption_avg_length(json_data)
+    log(f"Refined positive caption average length: {refined_positive_caption_avg_length}")
+
     vocab_size_dataset = mesure_vocabulary_size_dataset(json_data)
     log(f"Vocabulary size (dataset): {vocab_size_dataset}")
 
     vocab_size_per_image = mesure_vocabulary_size_per_image(json_data)
     log(f"Vocabulary size (per image): {vocab_size_per_image}")
 
-    top = 30
+    top = 1000
     words, counts = measure_top_common_words(json_data, top)
     log(f"Top {top} common words:")
     for word, count in zip(words, counts):
         log(f"{word}: {count}")
+
+    with open("temp2.txt" , "w", encoding="utf-8") as f:
+        for word, count in zip(words, counts):
+            f.write(f"{word}: {count}\n")
     
     log("---- Categories ----")
 
@@ -113,7 +123,8 @@ def main(json_file:str, output_folder:str):
     assert caption_count == medium_bbox_count + large_bbox_count, f"Caption count: {caption_count}, Medium bbox count: {medium_bbox_count}, Large bbox count: {large_bbox_count}"
     assert not_labeled_count == small_bbox_count, f"Not labeled count: {not_labeled_count}, Small bbox count: {small_bbox_count}"
     assert medium_bbox_count + large_bbox_count == generated_positive_count + generated_negative_count + refined_positive_count, f"Medium bbox count: {medium_bbox_count}, Large bbox count: {large_bbox_count}, Generated positive count: {generated_positive_count}, Generated negative count: {generated_negative_count}, Refined positive count: {refined_positive_count}"
-
+    assert refined_positive_caption_count ==  refined_positive_count, f"Refined positive caption count: {refined_positive_caption_count}, Refined positive count: {refined_positive_count}"
+    
     output_path = os.path.join(output_folder, os.path.basename(json_file).replace(".json", "_statistic.txt"))
     write_txt(output_path, LOG)
 
