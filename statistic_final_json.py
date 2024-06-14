@@ -47,7 +47,7 @@ def main(json_file:str, output_folder:str):
     vocab_size_per_image = mesure_vocabulary_size_per_image(json_data)
     log(f"Vocabulary size (per image): {vocab_size_per_image}")
 
-    top = 1000
+    top = 100
     words, counts = measure_top_common_words(json_data, top)
     log(f"Top {top} common words:")
     for word, count in zip(words, counts):

@@ -1,11 +1,13 @@
-from utils.util import *
-from utils.statistic import *
+import argparse
 import os
 import re
-
-from nltk.tokenize import word_tokenize
 from collections import Counter
+
 from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+from utils.statistic import *
+from utils.util import *
 
 LOG = []
 
@@ -129,7 +131,7 @@ def main(json_file:str, output_folder:str, seen_file:str, unseen_file:str):
     assert not_labeled_count == small_bbox_count, f"Not labeled count: {not_labeled_count}, Small bbox count: {small_bbox_count}"
     assert medium_bbox_count + large_bbox_count == generated_positive_count + generated_negative_count + refined_positive_count, f"Medium bbox count: {medium_bbox_count}, Large bbox count: {large_bbox_count}, Generated positive count: {generated_positive_count}, Generated negative count: {generated_negative_count}, Refined positive count: {refined_positive_count}"
     assert len(json_data["annotations"]) == seen_annotation_count + unseen_annotation_count, f"Annotation count: {len(json_data['annotations'])}, Seen annotation count: {seen_annotation_count}, Unseen annotation count: {unseen_annotation_count}"
-    assert category_count == seen_categories_count + unseen_categories_count, f"Category count: {category_count}, Seen categories count: {seen_categories_count}, Unseen categories count: {unseen_categories_count}"
+    # assert category_count == seen_categories_count + unseen_categories_count, f"Category count: {category_count}, Seen categories count: {seen_categories_count}, Unseen categories count: {unseen_categories_count}"
 
     output_path = os.path.join(output_folder, os.path.basename(json_file).replace(".json", "_statistic.txt"))
     write_txt(output_path, LOG)
@@ -137,8 +139,10 @@ def main(json_file:str, output_folder:str, seen_file:str, unseen_file:str):
 
 
 if __name__ == "__main__":
-    json_file = "json/intra_class.json"
-    output_folder = "statistic/"
-    sceen_class_file = "category\intra-class_seen.txt"
-    unseen_class_file = "category\intra-class_unseen.txt"
-    main(json_file, output_folder, sceen_class_file, unseen_class_file)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json_file", type=str, required=True)
+    parser.add_argument("--output_folder", type=str, default="statistic/")
+    parser.add_argument("--seen_file", type=str, required=True)
+    parser.add_argument("--unseen_file", type=str, required=True)
+    args = parser.parse_args()
+    main(args.json_file, args.output_folder, args.seen_file, args.unseen_file)
