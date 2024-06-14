@@ -4,25 +4,21 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
 import os
-
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 
-
 from utils.util import *
+from wordcloud import WordCloud
 
-# nltk.download("stopwords")
-# nltk.download("punkt")
-
-
-def main(csv_file: str, output_folder: str, top):
+def main(json_file: str, output_folder: str, top):
 
     os.makedirs(output_folder, exist_ok=True)
 
-    csv_data = read_csv(csv_file)
+    json_data = read_json(json_file)
 
     captions = []
-    for data in csv_data:
-        captions.append(data[CAPTION])
+    for annotation in json_data["annotations"]:
+        captions.append(annotation["caption"])
 
     # Load the set of English stopwords
     stop_words = set(stopwords.words("english"))
@@ -35,36 +31,40 @@ def main(csv_file: str, output_folder: str, top):
         word for word in words if word.isalpha() and word not in stop_words
     ]
 
-    # Count the frequency of each word
-    word_counts = Counter(filtered_words)
+    word_count = {}
+    for word in filtered_words:
+        if word in word_count:
+            word_count[word] += 1
+        else:
+            word_count[word] = 1
 
-    # Sort the word counts by frequency in descending order and get the top 30
-    most_common_words = word_counts.most_common(top)
+    # Sort the word count dictionary in descending order
+    word_count = dict(sorted(word_count.items(), key=lambda item: item[1], reverse=True))
 
-    # Separate the words and their counts for plotting
-    words, counts = zip(*most_common_words)
+    # Wrtie top 200 words to file
+    top = 200
+    with open("temp.txt", "w") as f:
+        for i, (word, count) in enumerate(word_count.items()):
+            if i >= top:
+                break
+            f.write(f"{word}: {count}\n")
 
-    # Create the bar chart
-    plt.figure(figsize=(14, 8))
-    plt.bar(np.arange(len(words)) * 5, counts, color="skyblue")
+    # Create the word cloud
+    wordcloud = WordCloud(
+        width=800, height=400, background_color="white"
+    ).generate_from_frequencies(word_count)
+    # Display the word cloud
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
 
-    # Add titles and labels
-    plt.title(f"Top {top} Most Frequent Words", fontsize=16)
-    plt.xlabel("Words", fontsize=14)
-    plt.ylabel("Frequency", fontsize=14)
-
-    # Rotate x labels to avoid overlap
-    plt.xticks(np.arange(len(words)) * 5, words, rotation=60, ha="right")
-
-    # Display the plot
-    plt.tight_layout()
-
-    output_path = os.path.join(output_folder, "word_frequency.png")
+    output_path = os.path.join(output_folder, f"caption_wordcloud.png")
     plt.savefig(output_path)
+    plt.clf()
 
 
 if __name__ == "__main__":
-    csv_file = "data/mvk_caption.csv"
-    output_folder = "./figures"
-    top = 80
+    csv_file = "final.json"
+    output_folder = "./figures/"
+    top = 100
     main(csv_file, output_folder, top)

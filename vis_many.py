@@ -92,7 +92,8 @@ def main(args):
         bbox = vis_annotation["bbox"]
         category_name = CATEGORY_ID_TO_NAME[vis_annotation['category_id']]
         ax.text(bbox[0]+5, bbox[1]-10, f"{category_name}", fontsize=13, color="white", backgroundcolor="red")
-
+        print("-"*40)
+        print(f"Image: {image_file}")
         print(f"Caption: {vis_annotation['caption']}")
         print(f"Category: {CATEGORY_ID_TO_NAME[vis_annotation['category_id']]}")
 

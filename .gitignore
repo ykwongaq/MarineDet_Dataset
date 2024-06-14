@@ -6,3 +6,7 @@ json/
 statistic/
 figures/
 *.json
+
+images/
+*.pyc
+vis/
